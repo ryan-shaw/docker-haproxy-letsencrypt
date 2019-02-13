@@ -1,8 +1,9 @@
-FROM haproxy:1.7-alpine
+FROM haproxy:1.9.4-alpine
 MAINTAINER Tecnativa <info@tecnativa.com>
 
 ENTRYPOINT ["/prepare-entrypoint.sh"]
 CMD haproxy -- /etc/haproxy/*.cfg
+
 EXPOSE 80 443
 
 # The port listening in `www` container
@@ -26,26 +27,8 @@ ENV PORT=80 \
     RENEW="certbot certonly"
 
 # Certbot (officially supported Let's Encrypt client)
-# SEE https://github.com/certbot/certbot/pull/4032
-COPY cli.ini certbot.txt /usr/src/
-RUN apk add --no-cache --virtual .certbot-deps \
-        py2-pip \
-        dialog \
-        augeas-libs \
-        libffi \
-        libssl1.0 \
-        wget \
-        ca-certificates \
-        binutils
-RUN apk add --no-cache --virtual .build-deps \
-        python-dev \
-        gcc \
-        linux-headers \
-        openssl-dev \
-        musl-dev \
-        libffi-dev \
-    && pip install --no-cache-dir --require-hashes -r /usr/src/certbot.txt \
-    && apk del .build-deps
+COPY cli.ini /usr/src/
+RUN apk add --no-cache certbot
 
 # Cron
 RUN apk add --no-cache dcron
@@ -67,4 +50,4 @@ LABEL org.label-schema.schema-version="1.0" \
       org.label-schema.vendor=Tecnativa \
       org.label-schema.build-date="$BUILD_DATE" \
       org.label-schema.vcs-ref="$VCS_REF" \
-      org.label-schema.vcs-url="https://github.com/Tecnativa/docker-haproxy-letsencrypt"
+      org.label-schema.vcs-url="https://github.com/ryan-shaw/docker-haproxy-letsencrypt"
